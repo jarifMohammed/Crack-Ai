@@ -6,12 +6,34 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.Gemini_Key);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+
+
+
+
+app.get("/generate-json", async (req, res) => {
+  const prompt = req.query?.prompt;
+  const Finalprompt = `
+    generate some data for this prompt ${prompt} using this  a JSON schema:
+  data:{'datatype':output}
+  Return:Array<Recipe>
+  `;
+  const result = await model.generateContent(Finalprompt);
+  // console.log(result.response.text());
+  const output = result.response.text().slice(7, -4);
+  const jsonData = JSON.parse(output);
+  res.send(jsonData);
+});
+
 app.get("/test-ai", async (req, res) => {
-  const prompt = "Explain how ai works";
+  const prompt = req.query.prompt;
+
+  if (!prompt) {
+    res.send({ message: "please provide a prompt" });
+  }
 
   const result = await model.generateContent(prompt);
-//   console.log(result.response.text());
-  res.send({answer:result.response.text()})
+  //   console.log(result.response.text());
+  res.send({ answer: result.response.text() });
 });
 
 app.get("/", (req, res) => {
