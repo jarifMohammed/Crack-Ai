@@ -3,9 +3,27 @@ const app = express();
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { default: axios } = require("axios");
 const genAI = new GoogleGenerativeAI(process.env.Gemini_Key);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+
+app.get('/generate-detail', async(req,res) => {
+  const prompt = req.query?.prompt
+  const response = await axios.get(prompt,{responseType:"arraybuffer"})
+  const responseData= {
+    inlineData:{
+      data:Buffer.from(response.data).toString("base64"),
+      mimeType:"image/png"
+    },
+  }
+  const result = await model.generateContent([
+    "tell the detail of the image",
+    responseData
+  ])
+  console.log(response.data);
+  res.send({detail:result.response.text()})
+})
 
 
 
